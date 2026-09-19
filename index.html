@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ARCHIVE RESALE</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text-main: #ffffff;
+      --text-muted: #8e8e93;
+      --accent: #55d688;
+      --border: #2c2c2e;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      padding-bottom: 90px;
+    }
+    .top-chips {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .top-chips::-webkit-scrollbar { display: none; }
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1c1c1e;
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      color: var(--text-main);
+    }
+    .tabs-row {
+      display: flex;
+      gap: 18px;
+      padding: 10px 16px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-row::-webkit-scrollbar { display: none; }
+    .tab-item {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .tab-item.active { color: var(--text-main); }
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 0 16px;
+    }
+    .item-card {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 125%;
+      border-radius: 16px;
+      overflow: hidden;
+      background-color: #242426;
+    }
+    .image-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .like-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      color: #ffffff;
+      font-size: 15px;
+    }
+    .dots-row {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+    }
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .dot.active {
+      background: #ffffff;
+      width: 6px;
+      height: 6px;
+    }
+    .item-info {
+      padding: 8px 2px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .model-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .size-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .price-tag {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 4px;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: #1c1c1e;
+      border-radius: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      border: 1px solid #2c2c2e;
+    }
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .nav-tab.active { color: #ffffff; }
+    .avatar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-chips">
+    <div class="chip">⚙️ Фильтры</div>
+    <div class="chip">👟 Обувь</div>
+    <div class="chip">🧥 Верхняя одежда</div>
+    <div class="chip">👖 Джинсы</div>
+  </div>
+  <div class="tabs-row">
+    <div class="tab-item active">Для меня</div>
+    <div class="tab-item">Популярные</div>
+    <div class="tab-item">Новые</div>
+    <div class="tab-item">Мужское</div>
+    <div class="tab-item">Женское</div>
+  </div>
+  <div class="catalog-grid" id="catalog-container"></div>
+  <div class="bottom-bar">
+    <button class="nav-tab active">
+      <span>🔍</span>
+      <span>Поиск</span>
+    </button>
+    <button class="nav-tab">
+      <span>📋</span>
+      <span>Объявления</span>
+    </button>
+    <button class="nav-tab">
+      <span>📦</span>
+      <span>Заказы</span>
+    </button>
+    <div class="avatar-btn">Ш</div>
+  </div>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+
+    const items = [
+      {
+        id: 1,
+        brand: "Goa",
+        title: "Винтажная кожаная сумка",
+        size: "One Size",
+        price: 9490,
+        img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: 2,
+        brand: "Versace",
+        title: "Move On Shirt",
+        size: "L",
+        price: 6500,
+        img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: 3,
+        brand: "Philipp Plein",
+        title: "Джинсы Biker Cut",
+        size: "M",
+        price: 2700,
+        img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80"
+      },
+      {
+        id: 4,
+        brand: "Nike",
+        title: "Air Force 1 High",
+        size: "8.5 US (EU 42)",
+        price: 3000,
+        img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80"
+      }
+    ];
+
+    let selectedItem = null;
+
+    function renderItems() {
+      const container = document.getElementById("catalog-container");
+      container.innerHTML = "";
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.onclick = () => chooseItem(item);
+        card.innerHTML = `
+          <div class="image-wrapper">
+            <img src="${item.img}" alt="${item.title}">
+            <button class="like-btn" onclick="event.stopPropagation()">♡</button>
+            <div class="dots-row">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+          <div class="item-info">
+            <div class="brand-title">${item.brand}</div>
+            <div class="model-subtitle">${item.title}</div>
+            <div class="size-label">${item.size}</div>
+            <div class="price-tag">${item.price.toLocaleString("ru-RU")} ₽</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function chooseItem(item) {
+      selectedItem = item;
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred("medium");
+      }
+      tg.MainButton.setText(`КУПИТЬ ${item.brand.toUpperCase()} (${item.price.toLocaleString("ru-RU")} ₽)`);
+      tg.MainButton.show();
+    }
+
+    tg.MainButton.onClick(() => {
+      if (selectedItem) {
+        tg.sendData(JSON.stringify(selectedItem));
+      }
+    });
+
+    renderItems();
+  </script>
+</body>
+</html>

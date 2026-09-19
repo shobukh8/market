@@ -1,263 +1,117 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>ARCHIVE MARKET</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      background-color: #0b0b0e;
-      color: #f5f5f7;
-      padding: 16px 14px 90px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #1f1f27;
-      padding-bottom: 12px;
-    }
-    h1 {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-    .badge {
-      font-size: 11px;
-      background: #1f1f27;
-      color: #a1a1aa;
-      padding: 4px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .card {
-      background: #15151c;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #23232e;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.1s ease, border-color 0.1s ease;
-      cursor: pointer;
-    }
-    .card:active {
-      transform: scale(0.98);
-    }
-    .card.selected {
-      border-color: #ffffff;
-      box-shadow: 0 0 0 1px #ffffff;
-    }
-    .img-wrap {
-      width: 100%;
-      height: 160px;
-      background: #1c1c26;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-    }
-    .img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .tag {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(11, 11, 14, 0.85);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .info {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex-grow: 1;
-    }
-    .brand {
-      font-size: 10px;
-      color: #8e8e93;
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-    }
-    .title {
-      font-size: 13px;
-      font-weight: 600;
-      color: #ededed;
-      line-height: 1.2;
-    }
-    .meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .size {
-      font-size: 11px;
-      color: #a1a1aa;
-      background: #1c1c26;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .price {
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .status-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(15, 15, 20, 0.95);
-      backdrop-filter: blur(10px);
-      border-top: 1px solid #23232e;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-    }
-    .status-text {
-      font-size: 12px;
-      color: #8e8e93;
-    }
-  </style>
-</head>
-<body>
+import asyncio
+import json
+import logging
+import sys
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import (
+    Message,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    WebAppInfo
+)
 
-  <header>
-    <div>
-      <h1>ARCHIVE</h1>
-      <span style="font-size: 11px; color: #8e8e93;">CURATED PIECES</span>
-    </div>
-    <span class="badge">STOCK: 4</span>
-  </header>
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-  <div class="grid" id="catalog"></div>
+BOT_TOKEN = "8891043629:AAFv-84grsV76d9Gi_716c5bku3XGMFuaxQ"
+ADMIN_ID = 1494930217
 
-  <div class="status-bar" id="statusBar">
-    <span class="status-text">Выберите вещь для заказа</span>
-    <span class="badge" style="background:#272732; color:#fff;">СДЭК / РФ</span>
-  </div>
+# Параметр ?v=2 принудительно заставляет Telegram обойти старый кэш
+WEB_APP_URL = "https://shobukh8.github.io/market/?v=2"
 
-  <script>
-    const tg = window.Telegram?.WebApp;
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(storage=MemoryStorage())
 
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.MainButton.textColor = '#000000';
-      tg.MainButton.color = '#ffffff';
-    }
+inline_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="⚡️ Открыть Archive Market", web_app=WebAppInfo(url=WEB_APP_URL))]
+    ]
+)
 
-    const catalogData = [
-      {
-        id: 1,
-        brand: "MAISON MARGIELA",
-        title: "Fusion Distressed Lows",
-        size: "42 EU",
-        price: 54000,
-        tag: "ARCHIVE",
-        img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80"
-      },
-      {
-        id: 2,
-        brand: "RICK OWENS",
-        title: "Bauhaus Cargo Heavy Jersey",
-        size: "M (48)",
-        price: 68000,
-        tag: "RARE",
-        img: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400&q=80"
-      },
-      {
-        id: 3,
-        brand: "BALENCIAGA",
-        title: "Mud Washed Distressed Zip",
-        size: "L / Oversize",
-        price: 89000,
-        tag: "RUNWAY",
-        img: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&q=80"
-      },
-      {
-        id: 4,
-        brand: "CHROME HEARTS",
-        title: "Dagger Leather Crossbody",
-        size: "ONE SIZE",
-        price: 145000,
-        tag: "GRAIL",
-        img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80"
-      }
-    ];
+main_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🛒 Открыть каталог", web_app=WebAppInfo(url=WEB_APP_URL))],
+        [KeyboardButton(text="📦 Доставка"), KeyboardButton(text="💬 Менеджер")]
+    ],
+    resize_keyboard=True
+)
 
-    let selectedItem = null;
-    const catalogContainer = document.getElementById('catalog');
-    const statusText = document.querySelector('.status-text');
+@dp.message(CommandStart())
+async def start_cmd(message: Message, state: FSMContext):
+    await state.clear()
+    
+    reset_msg = await message.answer("🔄 Загрузка каталога...", reply_markup=ReplyKeyboardRemove())
+    await asyncio.sleep(0.3)
+    await reset_msg.delete()
 
-    catalogData.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <div class="img-wrap">
-          <span class="tag">${item.tag}</span>
-          <img src="${item.img}" alt="${item.title}" loading="lazy">
-        </div>
-        <div class="info">
-          <span class="brand">${item.brand}</span>
-          <span class="title">${item.title}</span>
-          <div class="meta">
-            <span class="size">${item.size}</span>
-            <span class="price">${item.price.toLocaleString('ru-RU')} ₽</span>
-          </div>
-        </div>
-      `;
+    is_admin = message.from_user.id == ADMIN_ID
+    admin_hint = "\n\n⚙️ Режим админа активен." if is_admin else ""
+    
+    await message.answer(
+        f"Салют, {message.from_user.first_name}!\n"
+        f"Добро пожаловать в архивный шоурум.{admin_hint}\n\n"
+        "Нажми на кнопку ниже, чтобы открыть витрину 👇",
+        reply_markup=inline_kb
+    )
+    await message.answer("Каталог также доступен в нижнем меню:", reply_markup=main_kb)
 
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedItem = item;
+@dp.message(F.web_app_data)
+async def handle_webapp_order(message: Message):
+    raw_data = message.web_app_data.data
+    try:
+        item = json.loads(raw_data)
+    except Exception:
+        return await message.answer("Ошибка обработки данных заказа.")
 
-        statusText.textContent = `Выбрано: ${item.brand} (${item.price.toLocaleString('ru-RU')} ₽)`;
+    brand = item.get("brand", "Бренд")
+    title = item.get("title", "Вещь")
+    size = item.get("size", "-")
+    price = item.get("price", 0)
 
-        if (tg) {
-          tg.MainButton.text = `ЗАБРОНИРОВАТЬ ЗА ${item.price.toLocaleString('ru-RU')} ₽`;
-          tg.MainButton.show();
-        }
-      });
+    await message.answer(
+        f"🔒 <b>Бронь зафиксирована!</b>\n\n"
+        f"👕 Товар: <b>{brand} {title}</b>\n"
+        f"📏 Размер: <code>{size}</code>\n"
+        f"💵 Сумма: <code>{price:,} ₽</code>\n\n"
+        "Менеджер свяжется с вами для оформления отправки СДЭК.",
+        parse_mode="HTML"
+    )
 
-      catalogContainer.appendChild(card);
-    });
+    user = message.from_user
+    username = f"@{user.username}" if user.username else "без юзернейма"
+    admin_alert = (
+        "🚨 <b>НОВЫЙ ЗАКАЗ ИЗ MINI APP!</b>\n\n"
+        f"👤 Покупатель: {username} (ID: <code>{user.id}</code>)\n"
+        f"👕 Товар: {brand} {title}\n"
+        f"📏 Размер: {size}\n"
+        f"💰 К оплате: {price:,} ₽"
+    ).replace(",", " ")
 
-    if (tg) {
-      tg.MainButton.onClick(() => {
-        if (!selectedItem) return;
-        tg.sendData(JSON.stringify(selectedItem));
-      });
-    }
-  </script>
-</body>
-</html>
+    await bot.send_message(chat_id=ADMIN_ID, text=admin_alert, parse_mode="HTML")
+
+@dp.message(F.text.contains("Доставка"))
+async def shipping_info(message: Message):
+    await message.answer(
+        "📦 <b>Доставка и подлинность:</b>\n\n"
+        "- 100% строгий легитчек каждой позиции\n"
+        "- Экспресс-доставка СДЭК до двери или пункта выдачи\n"
+        "- Отправка в день оплаты",
+        parse_mode="HTML"
+    )
+
+@dp.message(F.text.contains("Менеджер"))
+async def manager_info(message: Message):
+    await message.answer("💬 Контакт менеджера: @твой_ник_в_тг")
+
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    print("=== БОТ И MINI APP УСПЕШНО ЗАПУЩЕНЫ ===")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())

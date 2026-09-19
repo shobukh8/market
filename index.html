@@ -1,117 +1,271 @@
-import asyncio
-import json
-import logging
-import sys
-from aiogram import Bot, Dispatcher, F
-from aiogram.filters import CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import (
-    Message,
-    ReplyKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardRemove,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    WebAppInfo
-)
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ARCHIVE MARKET</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #0b0b0e !important;
+      color: #f5f5f7;
+      padding: 16px 14px 90px;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #1f1f27;
+      padding-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .badge {
+      font-size: 11px;
+      background: #1f1f27;
+      color: #a1a1aa;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .card {
+      background: #15151c;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #23232e;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.1s ease;
+    }
+    .card:active {
+      transform: scale(0.98);
+    }
+    .card.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 1px #ffffff;
+    }
+    .img-wrap {
+      width: 100%;
+      height: 150px;
+      background: #1c1c26;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .tag {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(11, 11, 14, 0.85);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+    .info {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1;
+    }
+    .brand {
+      font-size: 10px;
+      color: #8e8e93;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+    }
+    .title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ededed;
+      line-height: 1.2;
+    }
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .size {
+      font-size: 11px;
+      color: #a1a1aa;
+      background: #1c1c26;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .price {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 15, 20, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid #23232e;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .status-text {
+      font-size: 12px;
+      color: #8e8e93;
+    }
+  </style>
+</head>
+<body>
 
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+  <header>
+    <div>
+      <h1>ARCHIVE</h1>
+      <span style="font-size: 11px; color: #8e8e93;">CURATED PIECES</span>
+    </div>
+    <span class="badge">STOCK: 4</span>
+  </header>
 
-BOT_TOKEN = "8891043629:AAFv-84grsV76d9Gi_716c5bku3XGMFuaxQ"
-ADMIN_ID = 1494930217
+  <div class="grid">
+    <div class="card" onclick="selectItem('MAISON MARGIELA', 'Fusion Distressed Lows', '42 EU', 54000, this)">
+      <div class="img-wrap">
+        <span class="tag">ARCHIVE</span>
+        <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80" alt="Item">
+      </div>
+      <div class="info">
+        <span class="brand">MAISON MARGIELA</span>
+        <span class="title">Fusion Distressed Lows</span>
+        <div class="meta">
+          <span class="size">42 EU</span>
+          <span class="price">54 000 ₽</span>
+        </div>
+      </div>
+    </div>
 
-# Параметр ?v=2 принудительно заставляет Telegram обойти старый кэш
-WEB_APP_URL = "https://shobukh8.github.io/market/?v=2"
+    <div class="card" onclick="selectItem('RICK OWENS', 'Bauhaus Cargo Heavy', 'M (48)', 68000, this)">
+      <div class="img-wrap">
+        <span class="tag">RARE</span>
+        <img src="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400&q=80" alt="Item">
+      </div>
+      <div class="info">
+        <span class="brand">RICK OWENS</span>
+        <span class="title">Bauhaus Cargo Heavy</span>
+        <div class="meta">
+          <span class="size">M (48)</span>
+          <span class="price">68 000 ₽</span>
+        </div>
+      </div>
+    </div>
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(storage=MemoryStorage())
+    <div class="card" onclick="selectItem('BALENCIAGA', 'Mud Washed Zip Hoodie', 'L / Oversize', 89000, this)">
+      <div class="img-wrap">
+        <span class="tag">RUNWAY</span>
+        <img src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&q=80" alt="Item">
+      </div>
+      <div class="info">
+        <span class="brand">BALENCIAGA</span>
+        <span class="title">Mud Washed Zip Hoodie</span>
+        <div class="meta">
+          <span class="size">L / Oversize</span>
+          <span class="price">89 000 ₽</span>
+        </div>
+      </div>
+    </div>
 
-inline_kb = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [InlineKeyboardButton(text="⚡️ Открыть Archive Market", web_app=WebAppInfo(url=WEB_APP_URL))]
-    ]
-)
+    <div class="card" onclick="selectItem('CHROME HEARTS', 'Dagger Leather Bag', 'ONE SIZE', 145000, this)">
+      <div class="img-wrap">
+        <span class="tag">GRAIL</span>
+        <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80" alt="Item">
+      </div>
+      <div class="info">
+        <span class="brand">CHROME HEARTS</span>
+        <span class="title">Dagger Leather Bag</span>
+        <div class="meta">
+          <span class="size">ONE SIZE</span>
+          <span class="price">145 000 ₽</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-main_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🛒 Открыть каталог", web_app=WebAppInfo(url=WEB_APP_URL))],
-        [KeyboardButton(text="📦 Доставка"), KeyboardButton(text="💬 Менеджер")]
-    ],
-    resize_keyboard=True
-)
+  <div class="status-bar">
+    <span class="status-text" id="statusText">Нажмите на вещь для выбора</span>
+    <span class="badge" style="background:#23232e; color:#fff;">СДЭК / РФ</span>
+  </div>
 
-@dp.message(CommandStart())
-async def start_cmd(message: Message, state: FSMContext):
-    await state.clear()
-    
-    reset_msg = await message.answer("🔄 Загрузка каталога...", reply_markup=ReplyKeyboardRemove())
-    await asyncio.sleep(0.3)
-    await reset_msg.delete()
+  <!-- Скрипт Telegram подключен в самом конце с защитой от сбоев сети -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    let selectedData = null;
+    const tg = window.Telegram?.WebApp;
 
-    is_admin = message.from_user.id == ADMIN_ID
-    admin_hint = "\n\n⚙️ Режим админа активен." if is_admin else ""
-    
-    await message.answer(
-        f"Салют, {message.from_user.first_name}!\n"
-        f"Добро пожаловать в архивный шоурум.{admin_hint}\n\n"
-        "Нажми на кнопку ниже, чтобы открыть витрину 👇",
-        reply_markup=inline_kb
-    )
-    await message.answer("Каталог также доступен в нижнем меню:", reply_markup=main_kb)
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        tg.MainButton.setParams({
+          color: '#ffffff',
+          text_color: '#000000',
+          is_active: true
+        });
+        tg.MainButton.onClick(() => {
+          if (selectedData) {
+            tg.sendData(JSON.stringify(selectedData));
+          }
+        });
+      } catch (e) {
+        console.log('TG Init pass:', e);
+      }
+    }
 
-@dp.message(F.web_app_data)
-async def handle_webapp_order(message: Message):
-    raw_data = message.web_app_data.data
-    try:
-        item = json.loads(raw_data)
-    except Exception:
-        return await message.answer("Ошибка обработки данных заказа.")
+    function selectItem(brand, title, size, price, el) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
 
-    brand = item.get("brand", "Бренд")
-    title = item.get("title", "Вещь")
-    size = item.get("size", "-")
-    price = item.get("price", 0)
+      selectedData = { brand, title, size, price };
+      document.getElementById('statusText').innerText = brand + ' - ' + price.toLocaleString('ru-RU') + ' ₽';
 
-    await message.answer(
-        f"🔒 <b>Бронь зафиксирована!</b>\n\n"
-        f"👕 Товар: <b>{brand} {title}</b>\n"
-        f"📏 Размер: <code>{size}</code>\n"
-        f"💵 Сумма: <code>{price:,} ₽</code>\n\n"
-        "Менеджер свяжется с вами для оформления отправки СДЭК.",
-        parse_mode="HTML"
-    )
-
-    user = message.from_user
-    username = f"@{user.username}" if user.username else "без юзернейма"
-    admin_alert = (
-        "🚨 <b>НОВЫЙ ЗАКАЗ ИЗ MINI APP!</b>\n\n"
-        f"👤 Покупатель: {username} (ID: <code>{user.id}</code>)\n"
-        f"👕 Товар: {brand} {title}\n"
-        f"📏 Размер: {size}\n"
-        f"💰 К оплате: {price:,} ₽"
-    ).replace(",", " ")
-
-    await bot.send_message(chat_id=ADMIN_ID, text=admin_alert, parse_mode="HTML")
-
-@dp.message(F.text.contains("Доставка"))
-async def shipping_info(message: Message):
-    await message.answer(
-        "📦 <b>Доставка и подлинность:</b>\n\n"
-        "- 100% строгий легитчек каждой позиции\n"
-        "- Экспресс-доставка СДЭК до двери или пункта выдачи\n"
-        "- Отправка в день оплаты",
-        parse_mode="HTML"
-    )
-
-@dp.message(F.text.contains("Менеджер"))
-async def manager_info(message: Message):
-    await message.answer("💬 Контакт менеджера: @твой_ник_в_тг")
-
-async def main():
-    await bot.delete_webhook(drop_pending_updates=True)
-    print("=== БОТ И MINI APP УСПЕШНО ЗАПУЩЕНЫ ===")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+      if (tg) {
+        try {
+          tg.MainButton.setText('ЗАБРОНИРОВАТЬ ЗА ' + price.toLocaleString('ru-RU') + ' ₽');
+          tg.MainButton.show();
+        } catch (e) {}
+      }
+    }
+  </script>
+</body>
+</html>

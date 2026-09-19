@@ -2,315 +2,262 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ARCHIVE RESALE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ARCHIVE MARKET</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg: #121212;
-      --card-bg: #1e1e1e;
-      --text-main: #ffffff;
-      --text-muted: #8e8e93;
-      --accent: #55d688;
-      --border: #2c2c2e;
-    }
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
     body {
-      background-color: var(--bg);
-      color: var(--text-main);
-      padding-bottom: 90px;
+      background-color: #0b0b0e;
+      color: #f5f5f7;
+      padding: 16px 14px 90px;
     }
-    .top-chips {
+    header {
       display: flex;
-      gap: 8px;
-      padding: 12px 16px 8px;
-      overflow-x: auto;
-      scrollbar-width: none;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #1f1f27;
+      padding-bottom: 12px;
     }
-    .top-chips::-webkit-scrollbar { display: none; }
-    .chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #1c1c1e;
-      border: 1px solid var(--border);
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      white-space: nowrap;
-      color: var(--text-main);
+    h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
-    .tabs-row {
-      display: flex;
-      gap: 18px;
-      padding: 10px 16px 14px;
-      overflow-x: auto;
-      scrollbar-width: none;
+    .badge {
+      font-size: 11px;
+      background: #1f1f27;
+      color: #a1a1aa;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .tabs-row::-webkit-scrollbar { display: none; }
-    .tab-item {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-muted);
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .tab-item.active { color: var(--text-main); }
-    .catalog-grid {
+    .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
-      padding: 0 16px;
     }
-    .item-card {
+    .card {
+      background: #15151c;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #23232e;
       display: flex;
       flex-direction: column;
+      transition: transform 0.1s ease, border-color 0.1s ease;
       cursor: pointer;
     }
-    .image-wrapper {
-      position: relative;
-      width: 100%;
-      padding-top: 125%;
-      border-radius: 16px;
-      overflow: hidden;
-      background-color: #242426;
+    .card:active {
+      transform: scale(0.98);
     }
-    .image-wrapper img {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .card.selected {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 1px #ffffff;
+    }
+    .img-wrap {
+      width: 100%;
+      height: 160px;
+      background: #1c1c26;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .img-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .like-btn {
+    .tag {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      color: #ffffff;
-      font-size: 15px;
+      top: 8px;
+      left: 8px;
+      background: rgba(11, 11, 14, 0.85);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .dots-row {
-      position: absolute;
-      bottom: 8px;
-      left: 50%;
-      transform: translateX(-50%);
+    .info {
+      padding: 10px;
       display: flex;
+      flex-direction: column;
       gap: 4px;
+      flex-grow: 1;
     }
-    .dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.4);
-    }
-    .dot.active {
-      background: #ffffff;
-      width: 6px;
-      height: 6px;
-    }
-    .item-info {
-      padding: 8px 2px 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .brand-title {
-      font-size: 15px;
+    .brand {
+      font-size: 10px;
+      color: #8e8e93;
+      text-transform: uppercase;
       font-weight: 700;
-      color: #ffffff;
+      letter-spacing: 0.8px;
     }
-    .model-subtitle {
+    .title {
       font-size: 13px;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-weight: 600;
+      color: #ededed;
+      line-height: 1.2;
     }
-    .size-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-    .price-tag {
-      font-size: 15px;
-      font-weight: 800;
-      color: #ffffff;
-      margin-top: 4px;
-    }
-    .bottom-bar {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      background: #1c1c1e;
-      border-radius: 35px;
+    .meta {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: space-around;
-      padding: 8px 12px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-      border: 1px solid #2c2c2e;
+      margin-top: 8px;
     }
-    .nav-tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      color: var(--text-muted);
+    .size {
       font-size: 11px;
-      font-weight: 500;
-      border: none;
-      background: transparent;
-      cursor: pointer;
+      color: #a1a1aa;
+      background: #1c1c26;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
-    .nav-tab.active { color: #ffffff; }
-    .avatar-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #000000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .price {
+      font-size: 13px;
       font-weight: 700;
-      font-size: 14px;
+      color: #fff;
+    }
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 15, 20, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid #23232e;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .status-text {
+      font-size: 12px;
+      color: #8e8e93;
     }
   </style>
 </head>
 <body>
-  <div class="top-chips">
-    <div class="chip">⚙️ Фильтры</div>
-    <div class="chip">👟 Обувь</div>
-    <div class="chip">🧥 Верхняя одежда</div>
-    <div class="chip">👖 Джинсы</div>
-  </div>
-  <div class="tabs-row">
-    <div class="tab-item active">Для меня</div>
-    <div class="tab-item">Популярные</div>
-    <div class="tab-item">Новые</div>
-    <div class="tab-item">Мужское</div>
-    <div class="tab-item">Женское</div>
-  </div>
-  <div class="catalog-grid" id="catalog-container"></div>
-  <div class="bottom-bar">
-    <button class="nav-tab active">
-      <span>🔍</span>
-      <span>Поиск</span>
-    </button>
-    <button class="nav-tab">
-      <span>📋</span>
-      <span>Объявления</span>
-    </button>
-    <button class="nav-tab">
-      <span>📦</span>
-      <span>Заказы</span>
-    </button>
-    <div class="avatar-btn">Ш</div>
-  </div>
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
 
-    const items = [
+  <header>
+    <div>
+      <h1>ARCHIVE</h1>
+      <span style="font-size: 11px; color: #8e8e93;">CURATED PIECES</span>
+    </div>
+    <span class="badge">STOCK: 4</span>
+  </header>
+
+  <div class="grid" id="catalog"></div>
+
+  <div class="status-bar" id="statusBar">
+    <span class="status-text">Выберите вещь для заказа</span>
+    <span class="badge" style="background:#272732; color:#fff;">СДЭК / РФ</span>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.MainButton.textColor = '#000000';
+      tg.MainButton.color = '#ffffff';
+    }
+
+    const catalogData = [
       {
         id: 1,
-        brand: "Goa",
-        title: "Винтажная кожаная сумка",
-        size: "One Size",
-        price: 9490,
-        img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80"
+        brand: "MAISON MARGIELA",
+        title: "Fusion Distressed Lows",
+        size: "42 EU",
+        price: 54000,
+        tag: "ARCHIVE",
+        img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80"
       },
       {
         id: 2,
-        brand: "Versace",
-        title: "Move On Shirt",
-        size: "L",
-        price: 6500,
-        img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80"
+        brand: "RICK OWENS",
+        title: "Bauhaus Cargo Heavy Jersey",
+        size: "M (48)",
+        price: 68000,
+        tag: "RARE",
+        img: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400&q=80"
       },
       {
         id: 3,
-        brand: "Philipp Plein",
-        title: "Джинсы Biker Cut",
-        size: "M",
-        price: 2700,
-        img: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80"
+        brand: "BALENCIAGA",
+        title: "Mud Washed Distressed Zip",
+        size: "L / Oversize",
+        price: 89000,
+        tag: "RUNWAY",
+        img: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&q=80"
       },
       {
         id: 4,
-        brand: "Nike",
-        title: "Air Force 1 High",
-        size: "8.5 US (EU 42)",
-        price: 3000,
-        img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=600&q=80"
+        brand: "CHROME HEARTS",
+        title: "Dagger Leather Crossbody",
+        size: "ONE SIZE",
+        price: 145000,
+        tag: "GRAIL",
+        img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&q=80"
       }
     ];
 
     let selectedItem = null;
+    const catalogContainer = document.getElementById('catalog');
+    const statusText = document.querySelector('.status-text');
 
-    function renderItems() {
-      const container = document.getElementById("catalog-container");
-      container.innerHTML = "";
-      items.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "item-card";
-        card.onclick = () => chooseItem(item);
-        card.innerHTML = `
-          <div class="image-wrapper">
-            <img src="${item.img}" alt="${item.title}">
-            <button class="like-btn" onclick="event.stopPropagation()">♡</button>
-            <div class="dots-row">
-              <span class="dot active"></span>
-              <span class="dot"></span>
-              <span class="dot"></span>
-            </div>
+    catalogData.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="img-wrap">
+          <span class="tag">${item.tag}</span>
+          <img src="${item.img}" alt="${item.title}" loading="lazy">
+        </div>
+        <div class="info">
+          <span class="brand">${item.brand}</span>
+          <span class="title">${item.title}</span>
+          <div class="meta">
+            <span class="size">${item.size}</span>
+            <span class="price">${item.price.toLocaleString('ru-RU')} ₽</span>
           </div>
-          <div class="item-info">
-            <div class="brand-title">${item.brand}</div>
-            <div class="model-subtitle">${item.title}</div>
-            <div class="size-label">${item.size}</div>
-            <div class="price-tag">${item.price.toLocaleString("ru-RU")} ₽</div>
-          </div>
-        `;
-        container.appendChild(card);
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedItem = item;
+
+        statusText.textContent = `Выбрано: ${item.brand} (${item.price.toLocaleString('ru-RU')} ₽)`;
+
+        if (tg) {
+          tg.MainButton.text = `ЗАБРОНИРОВАТЬ ЗА ${item.price.toLocaleString('ru-RU')} ₽`;
+          tg.MainButton.show();
+        }
       });
-    }
 
-    function chooseItem(item) {
-      selectedItem = item;
-      if (tg.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred("medium");
-      }
-      tg.MainButton.setText(`КУПИТЬ ${item.brand.toUpperCase()} (${item.price.toLocaleString("ru-RU")} ₽)`);
-      tg.MainButton.show();
-    }
-
-    tg.MainButton.onClick(() => {
-      if (selectedItem) {
-        tg.sendData(JSON.stringify(selectedItem));
-      }
+      catalogContainer.appendChild(card);
     });
 
-    renderItems();
+    if (tg) {
+      tg.MainButton.onClick(() => {
+        if (!selectedItem) return;
+        tg.sendData(JSON.stringify(selectedItem));
+      });
+    }
   </script>
 </body>
 </html>
